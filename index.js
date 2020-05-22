@@ -31,7 +31,7 @@ const emojiTable = {
     "24": ":regional_indicator_x:",
     "25": ":regional_indicator_y:",
     "19": ":regional_indicator_z:"
-}
+};
 let emojiPlaceholderIncrement = 1;
 
 client.on('ready', () => {
@@ -43,8 +43,8 @@ client.on('message', (message) => {
     
     if (message.content.startsWith(conf.command_prefix) && !message.author.bot) {
         console.log(`* Responding to message indicated by Command Prefix...`);
-        createPoll(message).then((data) => {
-            formatPoll(data).then((formattedData) => {
+        createPoll(message).then((dataObj) => {
+            formatPoll(dataObj).then((formattedData) => {
                 message.channel.send(formattedData);
             });
         });
@@ -54,8 +54,11 @@ client.on('message', (message) => {
 function createPoll(message) {
     console.log(`* function 'createPoll()' invoked`);
     return new Promise((resolve, reject) => {
+        let messageObj = {};
         let messageParameters = message.content.split(' ');
         messageParameters.shift();
+
+        messageObj.author = message.author.username;
     
         for (let i = 0; i < messageParameters.length; i++) {
             console.log(`Begin loop over messageParameters - i = ${i}; length = ${messageParameters.length}`);
@@ -86,22 +89,24 @@ function createPoll(message) {
             }
             
         }
+        messageObj.messageData = messageParameters;
 
-        resolve(messageParameters);
+        resolve(messageObj);
     });
 }
 
-function formatPoll(data) {
+function formatPoll(messageObj) {
     console.log(`* function 'formatPoll()' invoked`);
     return new Promise((resolve, reject) => {
         let arrEmoji = [];
         let arrOption = [];
 
-        for (let i = 0; i < data.length; i++) {
-            i % 2 == 0 ? arrOption.push(data[i]) : arrEmoji.push(data[i]);
+        for (let i = 0; i < messageObj.messageData.length; i++) {
+            i % 2 == 0 ? arrOption.push(messageObj.messageData[i]) : arrEmoji.push(messageObj.messageData[i]);
         }
 
         let pollEmbed = new Discord.MessageEmbed();
+        pollEmbed.setAuthor(messageObj.author);
         pollEmbed.setDescription(``);
         for (let i = 0; i < arrEmoji.length; i++) {
             pollEmbed.description += `${arrEmoji[i]} ${arrOption[i]}\n\n`;
