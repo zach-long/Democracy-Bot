@@ -2,48 +2,44 @@
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
+const getEmoji = require('emoji-name-map');
 const conf = require('./config.json');
 
 const emojiTable = {
-    "1": ":regional_indicator_a:",
-    "2": ":regional_indicator_b:",
-    "3": ":regional_indicator_c:",
-    "4": ":regional_indicator_d:",
-    "5": ":regional_indicator_e:",
-    "6": ":regional_indicator_f:",
-    "7": ":regional_indicator_g:",
-    "8": ":regional_indicator_h:",
-    "9": ":regional_indicator_i:",
-    "10": ":regional_indicator_j:",
-    "11": ":regional_indicator_k:",
-    "12": ":regional_indicator_l:",
-    "13": ":regional_indicator_m:",
-    "14": ":regional_indicator_n:",
-    "15": ":regional_indicator_o:",
-    "16": ":regional_indicator_p:",
-    "17": ":regional_indicator_q:",
-    "18": ":regional_indicator_r:",
-    "19": ":regional_indicator_s:",
-    "20": ":regional_indicator_t:",
-    "21": ":regional_indicator_u:",
-    "22": ":regional_indicator_v:",
-    "23": ":regional_indicator_w:",
-    "24": ":regional_indicator_x:",
-    "25": ":regional_indicator_y:",
-    "26": ":regional_indicator_z:"
+    "1": ":🇦:",
+    "2": ":🇧:",
+    "3": ":🇨:",
+    "4": ":🇩:",
+    "5": ":🇪:",
+    "6": ":🇫:",
+    "7": ":🇬:",
+    "8": ":🇭:",
+    "9": ":🇮:",
+    "10": ":🇯:",
+    "11": ":🇰:",
+    "12": ":🇱:",
+    "13": ":🇲:",
+    "14": ":🇳:",
+    "15": ":🇴:",
+    "16": ":🇵:",
+    "17": ":🇶:",
+    "18": ":🇷:",
+    "19": ":🇸:",
+    "20": ":🇹:",
+    "21": ":🇺:",
+    "22": ":🇻:",
+    "23": ":🇼:",
+    "24": ":🇽:",
+    "25": ":🇾:",
+    "26": ":🇿:"
 };
-let emojiPlaceholderIncrement = 1;
 
 client.on('ready', () => {
     console.log(`* ${conf.bot_name} ready`);
 });
 
 client.on('message', (message) => {
-    console.log(`* Message -\nServer: ${message.channel.guild.name}\nChannel: ${message.channel.name}\nUser: ${message.author.username}\nContent: ${message.content}`);
-    
     if (message.content.startsWith(conf.command_prefix) && !message.author.bot) {
-        console.log(`* Responding to message indicated by Command Prefix...`);
-
         createPoll(message).then((dataObj) => {
             formatPoll(dataObj).then((formattedData) => {
                 message.delete();
@@ -55,12 +51,40 @@ client.on('message', (message) => {
             message.channel.send(err);
         });
     }
+
+    if (message.embeds.length > 0 && message.embeds[0].author.name.slice(0, 7) == `Poll by` && message.author.username == `Democracy Bot` && message.author.bot) {
+        reactToPoll(message).then((reactions) => {
+            for (let i = 0; i < reactions.length; i++) {
+                message.react(reactions[i]);
+            }
+        }).catch((err) => {
+            message.channel.send(err);
+        });
+        
+    }
+
+    // if (message.content.startsWith('test')) {
+    //     console.log(`* test registered`);
+    //     test(message).then((data) => {
+    //         message.channel.send(data);
+    //     });
+    // }
+
+    // if (message.embeds.length > 0 && message.embeds[0].author.name.slice(0, 7) == `Poll by` && message.author.username == `Democracy Bot` && message.author.bot && message.embeds[0].title == `Test Title 69`) {
+    //     console.log(`* sending test reactions`);
+    //     testReaction(message).then((reactions) => {
+    //         for (let i = 0; i < reactions.length; i++) {
+    //             message.react(reactions[i]);
+    //         }
+    //     });
+    // }
 });
 
 function createPoll(message) {
-    console.log(`* function 'createPoll()' invoked`);
+    console.log(`* function createPoll() invoked`);
     return new Promise((resolve, reject) => {
         let messageObj = {};
+        messageObj.message = message;
 
         let reg = /("[a-zA-Z0-9\!\?\.\(\)\{\}\[\]\'\/\_\-\+\=\|\@\#\$\%\^\&\*\~\`\<\>\,\s]+"|\([a-zA-Z0-9\!\?\.\(\)\{\}\[\]\'\/\_\-\+\=\|\@\#\$\%\^\&\*\~\`\<\>\,\s]+\))/gm;
         let messageParameters = message.content.match(reg);
@@ -70,18 +94,18 @@ function createPoll(message) {
         messageObj.author = message.author.username;
 
         if (messageParameters.length < 2) {
-            reject(`Insufficient number of poll options provided, you must provide more than one choice to vote on. Remember to structure your request as follows:\n\n/vote "the poll title" "first choice" "second choice" ...\n/vote "the poll title" "first choice" (thumbsup) "second choice" (thumbsdown) ...\n\nEnsure that all options are surrounded by quotations and that the title of the poll is also surrounded by quotations and precedes the first poll option.\nIf you do not select specific emojis generic ones will be inserted. If you wish to use specific emojis, put the name of the emoji only in quotations and do not include colons.`);
+            reject(conf.error_text.not_enough_options + conf.error_text.message_syntax);
         }
     
+        let emojiPlaceholderIncrement = 1;
         for (let i = 0; i < messageParameters.length; i++) {
             let thisParam = messageParameters[i];
             let nextParam = messageParameters[i + 1];
     
             if (thisParam.charAt(0) == '(' && thisParam.charAt(thisParam.length - 1) == ')') {
-                reject(`A poll cannot begin with an emoji, structure your request as follows:\n\n/vote "the poll title" "first choice" "second choice" ...\n/vote "the poll title" "first choice" (emoji) "second choice" (emoji) ...\n\nEnsure that all options are surrounded by quotations and that the title of the poll is also surrounded by quotations and precedes the first poll option.\nIf you do not select specific emojis generic ones will be inserted. If you wish to use specific emojis, put the name of the emoji only in quotations and do not include colons.`);
+                reject(conf.error_text.begin_with_emoji + conf.error_text.message_syntax);
             }
-console.log(messageParameters);
-console.log(`${i} v ${messageParameters.length}`)
+            
             if (!(i + 1 == messageParameters.length)) {
                 let nextParamLength = nextParam.length;
                 let nextParamStartsWith = nextParam.charAt(0);
@@ -107,12 +131,19 @@ console.log(`${i} v ${messageParameters.length}`)
         }
         messageObj.messageData = messageParameters;
 
+        // validate for too many options
+        if (messageParameters.length > 40) {
+            reject(conf.error_text.too_many_reactions);
+        }
+
+        console.log(`* function createPoll() resolving with messageObj as below:`);
+        console.log(messageObj);
         resolve(messageObj);
     });
 }
 
 function formatPoll(messageObj) {
-    console.log(`* function 'formatPoll()' invoked`);
+    console.log(`* function formatPoll() invoked`);
     return new Promise((resolve, reject) => {
         let arrEmoji = [];
         let arrOption = [];
@@ -121,8 +152,31 @@ function formatPoll(messageObj) {
         for (let i = 0; i < messageObj.messageData.length; i++) {
             i % 2 == 0 ? arrOption.push(messageObj.messageData[i]) : arrEmoji.push(messageObj.messageData[i]);
         }
+        
+        // validate number of arguments
+        if (arrEmoji.length != arrOption.length) {
+            reject(conf.error_text.generic_error + conf.error_text.message_syntax);
+        }
 
-        // format arrOption to remove double-quotes from the start and end of every entry
+        arrEmoji = arrEmoji.map(str => str.slice(1, str.length - 1));
+        for (let i = 0; i < arrEmoji.length; i++) {
+            let emojiObj = messageObj.message.guild.emojis.cache.find(emoji => emoji.name === arrEmoji[i]);
+            if (emojiObj) { // get emoji object for custom emoji
+                arrEmoji[i] = emojiObj;
+            } else if (arrEmoji[i].length == 2) { // is regional indicator for default fill
+                arrEmoji[i] = arrEmoji[i];
+            } else { // is not custom emoji or regional indicator, get unicode
+                arrEmoji[i] = getEmoji.get(arrEmoji[i]);
+            }
+        }
+
+        // validate that all emojis exist and were spelled correctly
+        for (let i = 0; i < arrEmoji.length; i++) {
+            if (arrEmoji[i] === undefined) {
+                reject(conf.error_text.bad_emoji + conf.error_text.message_syntax);
+            }
+        }
+
         arrOption = arrOption.map(str => str.slice(1, str.length - 1));
 
         let pollEmbed = new Discord.MessageEmbed();
@@ -134,8 +188,82 @@ function formatPoll(messageObj) {
             pollEmbed.description += `${arrEmoji[i]} ${arrOption[i]}\n\n`;
         }
 
+        console.log(`* function formatPoll() resolving with pollEmbed as below:`);
+        console.log(pollEmbed);
         resolve(pollEmbed);
     });
 }
 
+function reactToPoll(message) {
+    console.log(`* function reactToPoll() invoked`);
+    return new Promise((resolve, reject) => {
+        let messageDescriptionStr = message.embeds[0].description;
+
+        let regEmoji = /^[\S]+/gm;
+        let reactions = messageDescriptionStr.match(regEmoji);
+
+        let regEmojiID = /:[a-zA-Z0-9]+>/;
+        reactions = reactions.map((str) => {
+            if (str[0] == `<`) { // is a custom emoji, split out ID
+                let emojiID = str.match(regEmojiID);
+                emojiID = emojiID[0].slice(1, emojiID[0].length - 1);
+                return emojiID;
+            } else { // is not a custom emoji, keep unicode
+                return str;
+            }
+        });
+
+        console.log(`* function reactToPoll() resolving with reactions as below:`);
+        console.log(reactions);
+        reactions.length < 1 ? reject(`Error reacting to poll - No emojis detected.`) : resolve(reactions);
+    });
+}
+
+// function test(message) {
+//     return new Promise((resolve, reject) => {
+//         let dump = getEmoji;
+
+//         let pollEmbed = new Discord.MessageEmbed();
+//         pollEmbed.setColor('#b22234');
+//         pollEmbed.setTitle('Test Title 69');
+//         pollEmbed.setAuthor(`Poll by ${message.author.username}`);
+//         // pollEmbed.setDescription(':joy: first\n' +
+//         // '\n' +
+//         // ':sick: second\n' +
+//         // '\n' +
+//         // '<:7657_doomer:713807453619355690> third<span> item\n' +
+//         // '\n' +
+//         // ":regional_indicator_a: let's go to 'disney world'!\n" +
+//         // '\n' +
+//         // ':regional_indicator_b: wednesday/thursday');
+//         pollEmbed.setDescription(dump.get('slightly_frowning_face'));
+
+//         resolve(pollEmbed);
+//     });
+// }
+
+// function testReaction(message) {
+//     return new Promise((resolve, reject) => {
+//         let arrReactions = [`<:7657_doomer:713807453619355690>`, 'smile'];
+
+//         let reg = /:[a-zA-Z0-9]+>/;
+//         arrReactions = arrReactions.map((str) => {
+//             if (str[0] == `<`) {
+//                 console.log(str);
+//                 let s = str.match(reg);
+//                 console.log(s[0]);
+//                 return s[0].slice(1, s[0].length - 1);
+//             } else {
+//                 let e = getEmoji.get(str)
+//                 return e;
+//             }
+            
+//         });
+
+//         console.log(arrReactions);
+//         resolve(arrReactions);
+//     });
+// }
+
 client.login(conf.token);
+
