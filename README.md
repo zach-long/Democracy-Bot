@@ -10,6 +10,7 @@ A Discord bot to facilitate voting in a clean, customizable fashion.
 #### Low Priority
 - [ ] **Create and implement a build/deploy pipeline.**
 - [ ] **Add directory for development project goals that go more in-depth on issues/features.**
+- [ ] **Pull "help" and "error" text out of config.json and put it somewhere else.**
 - [ ] **Add the functionality for polls to have a "majority goal" and when enough votes to form a majority have been triggered on an option the bot will announce a "winner".**
 ---
 ### Test Cases (Success)
