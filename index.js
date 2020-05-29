@@ -270,51 +270,51 @@ function reactToPoll(message) {
     });
 }
 
-// function test(message) {
-//     return new Promise((resolve, reject) => {
-//         let dump = emojiMap;
+function test(message) {
+    return new Promise((resolve, reject) => {
+        let dump = emojiMap;
 
-//         let pollEmbed = new Discord.MessageEmbed();
-//         pollEmbed.setColor('#b22234');
-//         pollEmbed.setTitle('Test Title 69');
-//         pollEmbed.setAuthor(`Poll by ${message.author.username}`);
-//         // pollEmbed.setDescription(':joy: first\n' +
-//         // '\n' +
-//         // ':sick: second\n' +
-//         // '\n' +
-//         // '<:7657_doomer:713807453619355690> third<span> item\n' +
-//         // '\n' +
-//         // ":regional_indicator_a: let's go to 'disney world'!\n" +
-//         // '\n' +
-//         // ':regional_indicator_b: wednesday/thursday');
-//         pollEmbed.setDescription(dump.get('slightly_frowning_face'));
+        let pollEmbed = new Discord.MessageEmbed();
+        pollEmbed.setColor('#b22234');
+        pollEmbed.setTitle('Test Title 69');
+        pollEmbed.setAuthor(`Poll by ${message.author.username}`);
+        // pollEmbed.setDescription(':joy: first\n' +
+        // '\n' +
+        // ':sick: second\n' +
+        // '\n' +
+        // '<:7657_doomer:713807453619355690> third<span> item\n' +
+        // '\n' +
+        // ":regional_indicator_a: let's go to 'disney world'!\n" +
+        // '\n' +
+        // ':regional_indicator_b: wednesday/thursday');
+        pollEmbed.setDescription(dump.get('slightly_frowning_face'));
 
-//         resolve(pollEmbed);
-//     });
-// }
+        resolve(pollEmbed);
+    });
+}
 
-// function testReaction(message) {
-//     return new Promise((resolve, reject) => {
-//         let arrReactions = [`<:7657_doomer:713807453619355690>`, 'smile'];
+function testReaction(message) {
+    return new Promise((resolve, reject) => {
+        let arrReactions = [`<:7657_doomer:713807453619355690>`, 'smile'];
 
-//         let reg = /:[a-zA-Z0-9]+>/;
-//         arrReactions = arrReactions.map((str) => {
-//             if (str[0] == `<`) {
-//                 console.log(str);
-//                 let s = str.match(reg);
-//                 console.log(s[0]);
-//                 return s[0].slice(1, s[0].length - 1);
-//             } else {
-//                 let e = emojiMap.get(str)
-//                 return e;
-//             }
+        let reg = /:[a-zA-Z0-9]+>/;
+        arrReactions = arrReactions.map((str) => {
+            if (str[0] == `<`) {
+                console.log(str);
+                let s = str.match(reg);
+                console.log(s[0]);
+                return s[0].slice(1, s[0].length - 1);
+            } else {
+                let e = emojiMap.get(str)
+                return e;
+            }
             
-//         });
+        });
 
-//         console.log(arrReactions);
-//         resolve(arrReactions);
-//     });
-// }
+        console.log(arrReactions);
+        resolve(arrReactions);
+    });
+}
 
 client.login(conf.token);
 
