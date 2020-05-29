@@ -1,8 +1,9 @@
 'use strict';
 
+const emojiMap = require('emoji-name-map');
 const Discord = require('discord.js');
 const client = new Discord.Client();
-const getEmoji = require('emoji-name-map');
+
 const conf = require('./config.json');
 
 const emojiTable = {
@@ -35,32 +36,83 @@ const emojiTable = {
 };
 
 client.on('ready', () => {
-    console.log(`* ${conf.bot_name} ready`);
+    client.user.setPresence({
+        activity: {
+            type: conf.bot_status_type,
+            name: conf.bot_status_description
+        }
+    }).catch(console.error);
+
+    console.log(`${conf.bot_name} ready`);
 });
 
 client.on('message', (message) => {
-    if (message.content.startsWith(conf.command_prefix) && !message.author.bot) {
-        createPoll(message).then((dataObj) => {
-            formatPoll(dataObj).then((formattedData) => {
-                message.delete();
-                message.channel.send(formattedData);
+    console.log(`Message received:\n${message.content}`)
+
+    // switch (message.channel.type) {
+    //     case 'text':
+            
+    //         break;
+    //     case 'dm':
+
+    //         break;
+    //     default:
+    //         break;
+    // }
+
+    // messages in guild chat
+    if (message.channel.type == 'text') {
+
+        // detect message that is a poll request and create a poll
+        if (message.content.startsWith(conf.command_prefix) && !message.author.bot) {
+            createPoll(message).then((dataObj) => {
+                formatPoll(dataObj).then((formattedData) => {
+                    message.delete();
+                    message.channel.send(formattedData);
+                }).catch((err) => {
+                    message.channel.send(err);
+                });;
             }).catch((err) => {
                 message.channel.send(err);
-            });;
-        }).catch((err) => {
-            message.channel.send(err);
-        });
+            });
+        }
+
+        // detect message that is a poll created by Democracy Bot and react to it
+        if (message.embeds.length > 0 && message.embeds[0].author.name.slice(0, 7) == `Poll by` && message.author.username == `Democracy Bot (BETA)` && message.author.bot) {
+            reactToPoll(message).then((reactions) => {
+                for (let i = 0; i < reactions.length; i++) {
+                    message.react(reactions[i]);
+                }
+            }).catch((err) => {
+                message.channel.send(err);
+            });
+            
+        }
+
     }
 
-    if (message.embeds.length > 0 && message.embeds[0].author.name.slice(0, 7) == `Poll by` && message.author.username == `Democracy Bot` && message.author.bot) {
-        reactToPoll(message).then((reactions) => {
-            for (let i = 0; i < reactions.length; i++) {
-                message.react(reactions[i]);
-            }
-        }).catch((err) => {
-            message.channel.send(err);
-        });
-        
+    // messages that are DMs
+    if (message.channel.type == 'dm') {
+
+        // respond to DMs asking for help
+        if ((!message.content.startsWith(conf.command_prefix)) && !message.author.bot) {
+            message.channel.send(conf.help_text.how_to_use);
+        }
+
+        // send poll
+        if (message.content.startsWith(conf.command_prefix) && !message.author.bot) {
+            createPoll(message).then((dataObj) => {
+                formatPoll(dataObj).then((formattedData) => {
+                    message.channel.send(formattedData);
+                    message.channel.send(conf.help_text.dm_help_notes);
+                }).catch((err) => {
+                    message.channel.send(err);
+                });
+            }).catch((err) => {
+                message.channel.send(err);
+            });
+        }
+
     }
 
     // if (message.content.startsWith('test')) {
@@ -81,10 +133,13 @@ client.on('message', (message) => {
 });
 
 function createPoll(message) {
-    console.log(`* function createPoll() invoked`);
     return new Promise((resolve, reject) => {
         let messageObj = {};
         messageObj.message = message;
+
+        if (message.content == '/vote') {
+            reject(conf.help_text.vote + '\n\n' + conf.help_text.how_to_use);
+        }
 
         let reg = /("[a-zA-Z0-9\!\?\.\(\)\{\}\[\]\'\/\_\-\+\=\|\@\#\$\%\^\&\*\~\`\<\>\,\s]+"|\([a-zA-Z0-9\!\?\.\(\)\{\}\[\]\'\/\_\-\+\=\|\@\#\$\%\^\&\*\~\`\<\>\,\s]+\))/gm;
         let messageParameters = message.content.match(reg);
@@ -94,7 +149,7 @@ function createPoll(message) {
         messageObj.author = message.author.username;
 
         if (messageParameters.length < 2) {
-            reject(conf.error_text.not_enough_options + conf.error_text.message_syntax);
+            reject(conf.error_text.not_enough_options + `\nYou typed:\n\n${messageObj.message.content}`);
         }
     
         let emojiPlaceholderIncrement = 1;
@@ -103,7 +158,7 @@ function createPoll(message) {
             let nextParam = messageParameters[i + 1];
     
             if (thisParam.charAt(0) == '(' && thisParam.charAt(thisParam.length - 1) == ')') {
-                reject(conf.error_text.begin_with_emoji + conf.error_text.message_syntax);
+                reject(conf.error_text.begin_with_emoji + conf.error_text.message_syntax + `\nYou typed:\n\n${messageObj.message.content}`);
             }
             
             if (!(i + 1 == messageParameters.length)) {
@@ -136,14 +191,11 @@ function createPoll(message) {
             reject(conf.error_text.too_many_reactions);
         }
 
-        console.log(`* function createPoll() resolving with messageObj as below:`);
-        console.log(messageObj);
         resolve(messageObj);
     });
 }
 
 function formatPoll(messageObj) {
-    console.log(`* function formatPoll() invoked`);
     return new Promise((resolve, reject) => {
         let arrEmoji = [];
         let arrOption = [];
@@ -155,25 +207,29 @@ function formatPoll(messageObj) {
         
         // validate number of arguments
         if (arrEmoji.length != arrOption.length) {
-            reject(conf.error_text.generic_error + conf.error_text.message_syntax);
+            reject(conf.error_text.generic_error + conf.error_text.message_syntax + `\nYou typed:\n\n${messageObj.message.content}`);
         }
 
+        // NOTE - this would be good to break out into a function to run a certain way in different channels
         arrEmoji = arrEmoji.map(str => str.slice(1, str.length - 1));
         for (let i = 0; i < arrEmoji.length; i++) {
-            let emojiObj = messageObj.message.guild.emojis.cache.find(emoji => emoji.name === arrEmoji[i]);
-            if (emojiObj) { // get emoji object for custom emoji
+            let emojiObj;
+            if (messageObj.message.channel.type != 'dm') { // don't look for custom emojis if DM
+                emojiObj = messageObj.message.guild.emojis.cache.find(emoji => emoji.name === arrEmoji[i]);
+            }
+            if (emojiObj && messageObj.message.channel.type != 'dm') { // get emoji object for custom emoji
                 arrEmoji[i] = emojiObj;
-            } else if (arrEmoji[i].length == 2) { // is regional indicator for default fill
+            } else if (arrEmoji[i].length == 2 && arrEmoji[i] != '+1' && arrEmoji[i] != '-1') { // is regional indicator for default fill
                 arrEmoji[i] = arrEmoji[i];
             } else { // is not custom emoji or regional indicator, get unicode
-                arrEmoji[i] = getEmoji.get(arrEmoji[i]);
+                arrEmoji[i] = emojiMap.get(arrEmoji[i]);
             }
         }
-
+        
         // validate that all emojis exist and were spelled correctly
         for (let i = 0; i < arrEmoji.length; i++) {
             if (arrEmoji[i] === undefined) {
-                reject(conf.error_text.bad_emoji + conf.error_text.message_syntax);
+                reject(conf.error_text.bad_emoji + `\nYou typed:\n\n${messageObj.message.content}`);
             }
         }
 
@@ -188,14 +244,11 @@ function formatPoll(messageObj) {
             pollEmbed.description += `${arrEmoji[i]} ${arrOption[i]}\n\n`;
         }
 
-        console.log(`* function formatPoll() resolving with pollEmbed as below:`);
-        console.log(pollEmbed);
         resolve(pollEmbed);
     });
 }
 
 function reactToPoll(message) {
-    console.log(`* function reactToPoll() invoked`);
     return new Promise((resolve, reject) => {
         let messageDescriptionStr = message.embeds[0].description;
 
@@ -213,15 +266,13 @@ function reactToPoll(message) {
             }
         });
 
-        console.log(`* function reactToPoll() resolving with reactions as below:`);
-        console.log(reactions);
         reactions.length < 1 ? reject(`Error reacting to poll - No emojis detected.`) : resolve(reactions);
     });
 }
 
 // function test(message) {
 //     return new Promise((resolve, reject) => {
-//         let dump = getEmoji;
+//         let dump = emojiMap;
 
 //         let pollEmbed = new Discord.MessageEmbed();
 //         pollEmbed.setColor('#b22234');
@@ -254,7 +305,7 @@ function reactToPoll(message) {
 //                 console.log(s[0]);
 //                 return s[0].slice(1, s[0].length - 1);
 //             } else {
-//                 let e = getEmoji.get(str)
+//                 let e = emojiMap.get(str)
 //                 return e;
 //             }
             

@@ -1,4 +1,18 @@
 {
-    "token": "put the secrety discord app token here",
-    "bot_name": "however the bot will refer to itself on the server"
+  "token": "copy/paste the hidden token on the bot page of the app",
+  "command_prefix": "/vote",
+  "bot_name": "Democracy Bot",
+  "bot_status_type": "WATCHING",
+  "bot_status_description": "- send me a DM",
+  "help_text": {
+    "how_to_use": "help text"
+  },
+  "error_text": {
+    "generic_error": "```diff\n- Poll error, please double-check your poll query syntax.\n```",
+    "not_enough_options": "```diff\n- Insufficient number of poll options provided, you must provide more than one choice to vote on.\n```",
+    "begin_with_emoji": "```diff\n- A poll cannot begin with an emoji.\n```",
+    "bad_emoji": "```diff\n- Emoji not recognized.\n```",
+    "too_many_reactions": "```diff\n- Too many poll options provided, the maximum is 20.\n```",
+    "message_syntax": "\nRemember to structure your poll as follows:\n\n/vote \"the poll title\" \"first choice\" \"second choice\" ...\n/vote \"the poll title\" \"first choice\" (emoji) \"second choice\" (emoji) ...\n**Example:**\n/vote \"Example Poll, do you like eating food?\" \"live to eat\" (partying) \"eat to live\" (slightly_smiling_face) \"Yes, humans like to eat\" (robot)\n\nEnsure that all options are surrounded by quotations and that the title of the poll is also surrounded by quotations and precedes the first poll option.\nIf you do not select specific emojis generic ones will be inserted. If you wish to use specific emojis, put the name of the emoji only in quotations and do not include colons."
   }
+}
