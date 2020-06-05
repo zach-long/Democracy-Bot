@@ -3,6 +3,7 @@ A Discord bot to facilitate voting in a clean, customizable fashion.
 ---
 ### Further Development Goals
 #### High Priority
+- [ ] **Properly set up bot permissions so that it can safely delete messages from a server.**
 - [ ] **Create, or find, an alternative to the 'emoji-name-map' npm package.** 'emoji-name-map' uses the 'emojilib' npm package which only uses one alias per emoji, in Discord many emojis have more than one alias and 'emojilib' does not recognize alternate aliases.
 - [ ] **Replace `emojiTable` constant defined to implement regional indicators.**
 #### Moderate Priority
