@@ -278,15 +278,6 @@ function test(message) {
         pollEmbed.setColor('#b22234');
         pollEmbed.setTitle('Test Title 69');
         pollEmbed.setAuthor(`Poll by ${message.author.username}`);
-        // pollEmbed.setDescription(':joy: first\n' +
-        // '\n' +
-        // ':sick: second\n' +
-        // '\n' +
-        // '<:7657_doomer:713807453619355690> third<span> item\n' +
-        // '\n' +
-        // ":regional_indicator_a: let's go to 'disney world'!\n" +
-        // '\n' +
-        // ':regional_indicator_b: wednesday/thursday');
         pollEmbed.setDescription(dump.get('slightly_frowning_face'));
 
         resolve(pollEmbed);

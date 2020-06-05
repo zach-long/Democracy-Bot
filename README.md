@@ -3,9 +3,10 @@ A Discord bot to facilitate voting in a clean, customizable fashion.
 ---
 ### Further Development Goals
 #### High Priority
-- [ ] **Properly set up bot permissions so that it can safely delete messages from a server.**
+- [x] **Properly set up bot permissions so that it can safely delete messages from a server.**
 - [ ] **Create, or find, an alternative to the 'emoji-name-map' npm package.** 'emoji-name-map' uses the 'emojilib' npm package which only uses one alias per emoji, in Discord many emojis have more than one alias and 'emojilib' does not recognize alternate aliases.
 - [ ] **Replace `emojiTable` constant defined to implement regional indicators.**
+- [ ] **When a user types a poll query that triggers an error, instead of sending an error back to the channel, delete the message and send the user a DM with the error.**
 #### Moderate Priority
 - [ ] **Refine message response conditions in DM channels.** Currently, any message sent via DM will result in the bot sending back the default "help" response. Ideally it would only send the "help" response if a user asked for help, and may send other (currently non-existant) responses if a user says something else.
 #### Low Priority
