@@ -78,7 +78,7 @@ client.on('message', (message) => {
         }
 
         // detect message that is a poll created by Democracy Bot and react to it
-        if (message.embeds.length > 0 && message.embeds[0].author.name.slice(0, 7) == `Poll by` && message.author.username == `Democracy Bot (BETA)` && message.author.bot) {
+        if (message.embeds.length > 0 && message.embeds[0].author.name.slice(0, 7) == `Poll by` && (message.author.username == `Democracy Bot (BETA)` || message.author.username == `Democracy Bot TEST`) && message.author.bot) {
             reactToPoll(message).then((reactions) => {
                 for (let i = 0; i < reactions.length; i++) {
                     message.react(reactions[i]);
@@ -133,6 +133,7 @@ client.on('message', (message) => {
 });
 
 function createPoll(message) {
+    console.log(`* function 'createPoll()' invoked`);
     return new Promise((resolve, reject) => {
         let messageObj = {};
         messageObj.message = message;
@@ -141,7 +142,7 @@ function createPoll(message) {
             reject(conf.help_text.vote + '\n\n' + conf.help_text.how_to_use);
         }
 
-        let reg = /("[a-zA-Z0-9\!\?\.\(\)\{\}\[\]\'\/\_\-\+\=\|\@\#\$\%\^\&\*\~\`\<\>\,\s]+"|\([a-zA-Z0-9\!\?\.\(\)\{\}\[\]\'\/\_\-\+\=\|\@\#\$\%\^\&\*\~\`\<\>\,\s]+\))/gm;
+        let reg = /("[a-zA-Z0-9\!\?\.\(\)\{\}\[\]\'\/\_\-\+\=\|\@\#\$\%\^\&\*\~\`\<\>\,\:\;\s]+"|\([a-zA-Z0-9\!\?\.\(\)\{\}\[\]\'\/\_\-\+\=\|\@\#\$\%\^\&\*\~\`\<\>\,\:\;\s]+\))/gm;
         let messageParameters = message.content.match(reg);
         
         let tempTitle = messageParameters.shift()
@@ -191,11 +192,13 @@ function createPoll(message) {
             reject(conf.error_text.too_many_reactions);
         }
 
+        console.log(`* resolving 'createPoll()'`);
         resolve(messageObj);
     });
 }
 
 function formatPoll(messageObj) {
+    console.log(`* function 'formatPoll()' invoked`);
     return new Promise((resolve, reject) => {
         let arrEmoji = [];
         let arrOption = [];
@@ -244,11 +247,13 @@ function formatPoll(messageObj) {
             pollEmbed.description += `${arrEmoji[i]} ${arrOption[i]}\n\n`;
         }
 
+        console.log(`* resolving 'formatPoll()'`);
         resolve(pollEmbed);
     });
 }
 
 function reactToPoll(message) {
+    console.log(`* function 'reactToPoll()' invoked`);
     return new Promise((resolve, reject) => {
         let messageDescriptionStr = message.embeds[0].description;
 
@@ -266,6 +271,7 @@ function reactToPoll(message) {
             }
         });
 
+        console.log(`* resolving 'reactToPoll()'`);
         reactions.length < 1 ? reject(`Error reacting to poll - No emojis detected.`) : resolve(reactions);
     });
 }
