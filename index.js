@@ -59,10 +59,12 @@ client.on('message', (message) => {
                         message.delete();
                         message.channel.send(formattedData);
                     }).catch((err) => {
-                        message.channel.send(err);
+                        message.delete();
+                        message.author.send(err);
                     });;
                 }).catch((err) => {
-                    message.channel.send(err);
+                    message.delete();
+                    message.author.send(err);
                 });
             }
 
@@ -73,7 +75,8 @@ client.on('message', (message) => {
                         message.react(reactions[i]);
                     }
                 }).catch((err) => {
-                    message.channel.send(err);
+                    message.delete();
+                    message.author.send(err);
                 });
                 
             }
@@ -113,9 +116,9 @@ function createPoll(message) {
     return new Promise((resolve, reject) => {
         let messageObj = {};
         messageObj.message = message;
-
+        
         if (message.content == '/vote') {
-            reject(conf.help_text.vote + '\n\n' + conf.help_text.how_to_use);
+            reject(conf.misc_text.buffer + '\n' + `You typed: ${messageObj.message.content}\n\n` + conf.help_text.vote + '\n\n' + conf.help_text.how_to_use + '\n' + conf.misc_text.buffer);
         }
 
         let reg = /("[a-zA-Z0-9\!\?\.\(\)\{\}\[\]\'\/\_\-\+\=\|\@\#\$\%\^\&\*\~\`\<\>\,\:\;\s]+"|\([a-zA-Z0-9\!\?\.\(\)\{\}\[\]\'\/\_\-\+\=\|\@\#\$\%\^\&\*\~\`\<\>\,\:\;\s]+\))/gm;
@@ -126,7 +129,7 @@ function createPoll(message) {
         messageObj.author = message.author.username;
 
         if (messageParameters.length < 2) {
-            reject(conf.error_text.not_enough_options + `\nYou typed:\n\n${messageObj.message.content}`);
+            reject(conf.misc_text.buffer + '\n' + conf.error_text.not_enough_options + `\nYou typed:\n> ${messageObj.message.content}\n` + conf.error_text.message_syntax + '\n' + conf.misc_text.buffer);
         }
     
         let emojiPlaceholderIncrement = 1;
@@ -135,7 +138,7 @@ function createPoll(message) {
             let nextParam = messageParameters[i + 1];
     
             if (thisParam.charAt(0) == '(' && thisParam.charAt(thisParam.length - 1) == ')') {
-                reject(conf.error_text.begin_with_emoji + conf.error_text.message_syntax + `\nYou typed:\n\n${messageObj.message.content}`);
+                reject(conf.misc_text.buffer + '\n' + conf.error_text.begin_with_emoji + `\nYou typed:\n> ${messageObj.message.content}\n` + conf.error_text.message_syntax + '\n' + conf.misc_text.buffer);
             }
             
             if (!(i + 1 == messageParameters.length)) {
@@ -165,7 +168,7 @@ function createPoll(message) {
 
         // validate for too many options
         if (messageParameters.length > 40) {
-            reject(conf.error_text.too_many_reactions);
+            reject(conf.misc_text.buffer + '\n' + conf.error_text.too_many_reactions + `\nYou typed:\n> ${messageObj.message.content}\n` + '\n' + conf.misc_text.buffer);
         }
 
         console.log(`* resolving 'createPoll()'`);
@@ -186,7 +189,7 @@ function formatPoll(messageObj) {
         
         // validate number of arguments
         if (arrEmoji.length != arrOption.length) {
-            reject(conf.error_text.generic_error + conf.error_text.message_syntax + `\nYou typed:\n\n${messageObj.message.content}`);
+            reject(conf.misc_text.buffer + '\n' + conf.error_text.generic_error + `\nYou typed:\n> ${messageObj.message.content}\n` + conf.error_text.message_syntax + '\n' + conf.misc_text.buffer);
         }
 
         // NOTE - this would be good to break out into a function to run a certain way in different channels
@@ -208,7 +211,7 @@ function formatPoll(messageObj) {
         // validate that all emojis exist and were spelled correctly
         for (let i = 0; i < arrEmoji.length; i++) {
             if (arrEmoji[i] === undefined) {
-                reject(conf.error_text.bad_emoji + `\nYou typed:\n\n${messageObj.message.content}`);
+                reject(conf.misc_text.buffer + '\n' + conf.error_text.bad_emoji + `\nYou typed:\n> ${messageObj.message.content}\n` + '\n' + conf.misc_text.buffer);
             }
         }
 
@@ -248,7 +251,7 @@ function reactToPoll(message) {
         });
 
         console.log(`* resolving 'reactToPoll()'`);
-        reactions.length < 1 ? reject(`Error reacting to poll - No emojis detected.`) : resolve(reactions);
+        reactions.length < 1 ? reject(conf.misc_text.buffer + '\n' + `Error reacting to poll - No emojis detected.` + `\nYou typed:\n> ${messageObj.message.content}\n` + '\n' + conf.misc_text.buffer) : resolve(reactions);
     });
 }
 
