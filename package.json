@@ -1,6 +1,6 @@
 {
   "name": "democracy_bot",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "A Discord bot to facilitate voting in a clean, customizable fashion.",
   "main": "index.js",
   "scripts": {
