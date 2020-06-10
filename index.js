@@ -47,89 +47,65 @@ client.on('ready', () => {
 });
 
 client.on('message', (message) => {
-    console.log(`Message received:\n${message.content}`)
+    console.log(`-------------- Message received ---------------\nAuthor: ${message.author.username}\nContent: (below)\n${message.content}\n-----------------------------------------------`);
 
-    // switch (message.channel.type) {
-    //     case 'text':
-            
-    //         break;
-    //     case 'dm':
+    switch (message.channel.type) {
+        case 'text':
 
-    //         break;
-    //     default:
-    //         break;
-    // }
-
-    // messages in guild chat
-    if (message.channel.type == 'text') {
-
-        // detect message that is a poll request and create a poll
-        if (message.content.startsWith(conf.command_prefix) && !message.author.bot) {
-            createPoll(message).then((dataObj) => {
-                formatPoll(dataObj).then((formattedData) => {
-                    message.delete();
-                    message.channel.send(formattedData);
-                }).catch((err) => {
-                    message.channel.send(err);
-                });;
-            }).catch((err) => {
-                message.channel.send(err);
-            });
-        }
-
-        // detect message that is a poll created by Democracy Bot and react to it
-        if (message.embeds.length > 0 && message.embeds[0].author.name.slice(0, 7) == `Poll by` && (message.author.username == `Democracy Bot (BETA)` || message.author.username == `Democracy Bot TEST`) && message.author.bot) {
-            reactToPoll(message).then((reactions) => {
-                for (let i = 0; i < reactions.length; i++) {
-                    message.react(reactions[i]);
-                }
-            }).catch((err) => {
-                message.channel.send(err);
-            });
-            
-        }
-
-    }
-
-    // messages that are DMs
-    if (message.channel.type == 'dm') {
-
-        // respond to DMs asking for help
-        if ((!message.content.startsWith(conf.command_prefix)) && !message.author.bot) {
-            message.channel.send(conf.help_text.how_to_use);
-        }
-
-        // send poll
-        if (message.content.startsWith(conf.command_prefix) && !message.author.bot) {
-            createPoll(message).then((dataObj) => {
-                formatPoll(dataObj).then((formattedData) => {
-                    message.channel.send(formattedData);
-                    message.channel.send(conf.help_text.dm_help_notes);
+            // detect message that is a poll request and create a poll
+            if (message.content.startsWith(conf.command_prefix) && !message.author.bot) {
+                createPoll(message).then((dataObj) => {
+                    formatPoll(dataObj).then((formattedData) => {
+                        message.delete();
+                        message.channel.send(formattedData);
+                    }).catch((err) => {
+                        message.channel.send(err);
+                    });;
                 }).catch((err) => {
                     message.channel.send(err);
                 });
-            }).catch((err) => {
-                message.channel.send(err);
-            });
-        }
+            }
 
+            // detect message that is a poll created by Democracy Bot and react to it
+            if (message.embeds.length > 0 && message.embeds[0].author.name.slice(0, 7) == `Poll by` && (message.author.username == `Democracy Bot (BETA)` || message.author.username == `Democracy Bot TEST`) && message.author.bot) {
+                reactToPoll(message).then((reactions) => {
+                    for (let i = 0; i < reactions.length; i++) {
+                        message.react(reactions[i]);
+                    }
+                }).catch((err) => {
+                    message.channel.send(err);
+                });
+                
+            }
+
+            break;
+        case 'dm':
+
+            // respond to DMs asking for help
+            if ((!message.content.startsWith(conf.command_prefix)) && !message.author.bot) {
+                message.channel.send(conf.help_text.how_to_use);
+            }
+
+            // send poll
+            if (message.content.startsWith(conf.command_prefix) && !message.author.bot) {
+                createPoll(message).then((dataObj) => {
+                    formatPoll(dataObj).then((formattedData) => {
+                        message.channel.send(formattedData);
+                        message.channel.send(conf.help_text.dm_help_notes);
+                    }).catch((err) => {
+                        message.channel.send(err);
+                    });
+                }).catch((err) => {
+                    message.channel.send(err);
+                });
+            }
+
+            break;
+        default:
+
+            break;
     }
 
-    // if (message.content.startsWith('test')) {
-    //     console.log(`* test registered`);
-    //     test(message).then((data) => {
-    //         message.channel.send(data);
-    //     });
-    // }
-
-    // if (message.embeds.length > 0 && message.embeds[0].author.name.slice(0, 7) == `Poll by` && message.author.username == `Democracy Bot` && message.author.bot && message.embeds[0].title == `Test Title 69`) {
-    //     console.log(`* sending test reactions`);
-    //     testReaction(message).then((reactions) => {
-    //         for (let i = 0; i < reactions.length; i++) {
-    //             message.react(reactions[i]);
-    //         }
-    //     });
-    // }
 });
 
 function createPoll(message) {
@@ -276,42 +252,4 @@ function reactToPoll(message) {
     });
 }
 
-function test(message) {
-    return new Promise((resolve, reject) => {
-        let dump = emojiMap;
-
-        let pollEmbed = new Discord.MessageEmbed();
-        pollEmbed.setColor('#b22234');
-        pollEmbed.setTitle('Test Title 69');
-        pollEmbed.setAuthor(`Poll by ${message.author.username}`);
-        pollEmbed.setDescription(dump.get('slightly_frowning_face'));
-
-        resolve(pollEmbed);
-    });
-}
-
-function testReaction(message) {
-    return new Promise((resolve, reject) => {
-        let arrReactions = [`<:7657_doomer:713807453619355690>`, 'smile'];
-
-        let reg = /:[a-zA-Z0-9]+>/;
-        arrReactions = arrReactions.map((str) => {
-            if (str[0] == `<`) {
-                console.log(str);
-                let s = str.match(reg);
-                console.log(s[0]);
-                return s[0].slice(1, s[0].length - 1);
-            } else {
-                let e = emojiMap.get(str)
-                return e;
-            }
-            
-        });
-
-        console.log(arrReactions);
-        resolve(arrReactions);
-    });
-}
-
 client.login(conf.token);
-
